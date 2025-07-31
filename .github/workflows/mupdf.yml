@@ -1,0 +1,69 @@
+name: Build Minimal MuPDF WASM
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-mupdf-wasm:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: 'npm'
+    
+    - name: Install Emscripten SDK
+      run: |
+        cd /opt
+        sudo git clone https://github.com/emscripten-core/emsdk.git
+        cd emsdk
+        sudo ./emsdk install 4.0.8
+        sudo ./emsdk activate 4.0.8
+    
+    - name: Clone MuPDF source
+      run: |
+        git clone --recursive https://github.com/ArtifexSoftware/mupdf.git
+        cd mupdf
+        git submodule update --init --recursive
+    
+    - name: Build minimal MuPDF WASM
+      run: |
+        cd mupdf/platform/wasm
+        
+        # Set environment variables for minimal build
+        export EMSDK=/opt/emsdk
+        export BUILD=small
+        export DEFINES="-DTOFU -DTOFU_CJK_EXT -DFZ_ENABLE_ICC=0 -DFZ_ENABLE_JS=0"
+        export FEATURES="brotli=no mujs=no extract=no xps=no svg=no html=no epub=no cbz=no img=no"
+        export SUFFIX="_minimal"
+        
+        # Run the build script
+        ./tools/build.sh
+    
+    - name: List build artifacts
+      run: |
+        ls -la mupdf/platform/wasm/dist/
+        echo "File sizes:"
+        du -h mupdf/platform/wasm/dist/*
+    
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: mupdf-wasm-minimal
+        path: |
+          mupdf/platform/wasm/dist/mupdf-wasm.wasm
+          mupdf/platform/wasm/dist/mupdf-wasm.js
+          mupdf/platform/wasm/dist/mupdf.js
+          mupdf/platform/wasm/dist/mupdf-wasm.d.ts
+        retention-days: 30

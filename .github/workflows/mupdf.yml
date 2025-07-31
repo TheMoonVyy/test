@@ -52,6 +52,7 @@ jobs:
         # Prepare a writable cache directory
         export EM_CACHE="$RUNNER_TEMP/emsdk_cache"
         mkdir -p "$EM_CACHE"
+        sudo chmod -R u+w "$EMSDK/upstream/emscripten/cache"
 
         # Create an emcc wrapper script that injects --cache
         cat > emcc << 'EOF'

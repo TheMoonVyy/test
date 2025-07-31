@@ -49,6 +49,19 @@ jobs:
         export SUFFIX="_minimal"
         export EMCC_SKIP_SANITY_CHECK=1
         export EM_IGNORE_SANITY=1
+        # Prepare a writable cache directory
+        export EM_CACHE="$RUNNER_TEMP/emsdk_cache"
+        mkdir -p "$EM_CACHE"
+
+        # Create an emcc wrapper script that injects --cache
+        cat > emcc << 'EOF'
+        #!/usr/bin/env bash
+        exec /opt/emsdk/upstream/emscripten/emcc --cache "$EM_CACHE" "$@"
+        EOF
+        chmod +x emcc
+
+        # Prepend current dir so our wrapper is used
+        export PATH="$(pwd):$PATH"
         
         # Run the build script
         ./tools/build.sh

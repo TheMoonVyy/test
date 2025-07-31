@@ -50,6 +50,7 @@ jobs:
         # Redirect Emscripten cache to a writable path
         export EM_CACHE="$RUNNER_TEMP/emsdk_cache"
         mkdir -p "$EM_CACHE"
+        sed -i "s/emcc /emcc --cache $EM_CACHE /" tools/build.sh
         
         # Run the build script
         ./tools/build.sh

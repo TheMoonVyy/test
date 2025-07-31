@@ -47,6 +47,9 @@ jobs:
         export DEFINES="-DTOFU -DTOFU_CJK_EXT -DFZ_ENABLE_ICC=0 -DFZ_ENABLE_JS=0"
         export FEATURES="brotli=no mujs=no extract=no xps=no svg=no html=no epub=no cbz=no img=no"
         export SUFFIX="_minimal"
+        # Redirect Emscripten cache to a writable path
+        export EM_CACHE="$RUNNER_TEMP/emsdk_cache"
+        mkdir -p "$EM_CACHE"
         
         # Run the build script
         ./tools/build.sh
